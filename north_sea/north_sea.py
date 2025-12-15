@@ -240,7 +240,6 @@ def compute_north_sea_waves(world_x, world_z, t, normalized_y):
 
     # --- Tertiary Swell (long period, from behind) ---
     k3 = 0.12
-    dir3_x, dir3_z = 0.0, 1.0
     phase3 = world_z * k3 - t * 0.3
     cos3 = np.cos(phase3)
     h3 = (np.sin(phase3) + 1) * 0.5
@@ -443,7 +442,6 @@ def main():
 
             is_rising = dH_dz < -slope_threshold  # Front face of wave
             is_falling = dH_dz > slope_threshold   # Back face of wave
-            is_flat = ~is_rising & ~is_falling
 
             # Select characters from appropriate set
             chars_rise = CHARS_RISE[char_idx]

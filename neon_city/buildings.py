@@ -956,8 +956,8 @@ class City:
         # Load billboard ad textures
         self._load_billboard_textures()
 
-        for l in range(3):
-            self.generate_layer(l)
+        for layer in range(3):
+            self.generate_layer(layer)
 
     def _load_billboard_textures(self):
         """Load all billboard ad images as textures."""

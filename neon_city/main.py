@@ -66,6 +66,13 @@ def main():
     while not rl.window_should_close():
         t = time.time() - start_time
 
+        # Regenerate on R key
+        if rl.is_key_pressed(82):  # KEY_R
+            city = City()
+            flying_objects = [FlyingObject() for _ in range(5)]
+            hologram_manager.unload()
+            hologram_manager = HologramManager()
+
         # Update
         city.update()
         particles.spawn_rain()

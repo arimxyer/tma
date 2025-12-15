@@ -7,12 +7,10 @@
 
 import sys
 import time
-import math
 import os
 import shutil
 import ctypes
 import numpy as np
-import random
 
 
 # --- Windows ANSI Support ---

@@ -10,6 +10,13 @@ A cyberpunk cityscape animation with procedural buildings, holographic ads, and 
 python -m neon_city
 ```
 
+## Controls
+
+| Key | Action |
+|-----|--------|
+| `R` | Regenerate city, vehicles, and holograms |
+| `ESC` | Exit |
+
 ## Features
 
 - Procedurally generated cyberpunk buildings

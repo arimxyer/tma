@@ -6,7 +6,6 @@ Creates a GIF of the image rotating in 3D space (turntable effect).
 import math
 import os
 from PIL import Image
-import numpy as np
 
 
 def create_rotation_frames(

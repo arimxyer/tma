@@ -5,7 +5,7 @@ Creates wireframe perfume bottle and branded soda can.
 
 import math
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont
 
 
 # --- 3D Math (adapted from terminal_cube.py) ---
@@ -285,7 +285,7 @@ def render_can_frame(vertices, edges, width, height, label_color, angle_y, segme
         try:
             font_large = ImageFont.truetype("arial.ttf", 28)
             font_small = ImageFont.truetype("arial.ttf", 18)
-        except:
+        except Exception:
             font_large = ImageFont.load_default()
             font_small = font_large
 

@@ -7,7 +7,6 @@
 
 import sys
 import time
-import math
 import os
 import shutil
 import ctypes
@@ -192,7 +191,7 @@ def rasterize_quad_matrix(buffer_color, p, color, t):
 
         # Apply texture
         # Initialize region canvas for this poly
-        poly_region = np.zeros_like(region)
+        np.zeros_like(region)
 
         # Logic:
         # If mask is True:

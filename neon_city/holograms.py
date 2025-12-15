@@ -166,8 +166,6 @@ class Hologram:
         # Get current texture
         texture = self.textures[self.current_frame]
 
-        # Calculate scale to fit target height
-        scale = self.height / texture.height
 
         # Source rectangle (full texture)
         source = rl.Rectangle(0, 0, texture.width, texture.height)

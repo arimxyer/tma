@@ -4,7 +4,6 @@ Character/figure sprite drawing.
 
 import pyray as rl
 import random
-import math
 
 
 # Flicker state - persists between frames

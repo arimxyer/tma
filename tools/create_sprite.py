@@ -48,11 +48,17 @@ def create_silhouette(input_path, output_path="sprite.png", target_height=48, th
     pixels = gray.load()
     result_pixels = result.load()
 
+    if pixels is None or result_pixels is None:
+        raise ValueError("Failed to load pixel data")
+
     silhouette_color = (5, 2, 8, 255)  # Dark purple to match scene
 
     for y in range(target_height):
         for x in range(target_width):
-            is_silhouette = pixels[x, y] < threshold
+            pixel_value = pixels[x, y]
+            if isinstance(pixel_value, tuple):
+                pixel_value = pixel_value[0]
+            is_silhouette = pixel_value < threshold
             if invert:
                 is_silhouette = not is_silhouette
             if is_silhouette:
