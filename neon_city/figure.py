@@ -9,6 +9,174 @@ import random
 # Flicker state - persists between frames
 _flicker_state = {"is_flickering": False, "flicker_end": 0, "flicker_intensity": 1.0}
 
+# Umbrella animation state
+_umbrella_state = {
+    "state": "closed",  # closed, opening, open, closing
+    "progress": 0.0,    # 0.0 to 1.0 animation progress
+}
+UMBRELLA_ANIM_DURATION = 0.5  # seconds for open/close animation
+
+
+def ease_in_out_cubic(t):
+    """Smooth easing function for natural motion."""
+    if t < 0.5:
+        return 4 * t * t * t
+    else:
+        return 1 - pow(-2 * t + 2, 3) / 2
+
+
+def update_umbrella_state(dt, should_be_open):
+    """Update umbrella animation state machine."""
+    global _umbrella_state
+    state = _umbrella_state["state"]
+    progress = _umbrella_state["progress"]
+
+    if state == "closed":
+        if should_be_open:
+            _umbrella_state["state"] = "opening"
+            _umbrella_state["progress"] = 0.0
+    elif state == "opening":
+        progress += dt / UMBRELLA_ANIM_DURATION
+        if progress >= 1.0:
+            _umbrella_state["state"] = "open"
+            _umbrella_state["progress"] = 1.0
+        else:
+            _umbrella_state["progress"] = progress
+    elif state == "open":
+        if not should_be_open:
+            _umbrella_state["state"] = "closing"
+            _umbrella_state["progress"] = 1.0
+    elif state == "closing":
+        progress -= dt / UMBRELLA_ANIM_DURATION
+        if progress <= 0.0:
+            _umbrella_state["state"] = "closed"
+            _umbrella_state["progress"] = 0.0
+        else:
+            _umbrella_state["progress"] = progress
+
+    return _umbrella_state["progress"]
+
+
+def draw_procedural_umbrella(center_x, center_y, open_amount, t):
+    """Draw procedurally animated umbrella with smooth open/close."""
+    import math
+
+    if open_amount <= 0.01:
+        return  # Don't draw when fully closed
+
+    eased = ease_in_out_cubic(open_amount)
+
+    # Canopy parameters - wide and flat elliptical shape
+    closed_angle = 15  # degrees when closed (narrow)
+    open_angle = 170   # degrees when fully open (wider arc)
+    current_angle = closed_angle + (open_angle - closed_angle) * eased
+
+    # Elliptical radii - wider than tall for flat umbrella look
+    base_radius_x = 26  # Wider horizontally
+    base_radius_y = 14  # Shorter vertically (flatter)
+    radius_x = base_radius_x * (0.5 + 0.5 * eased)
+    radius_y = base_radius_y * (0.5 + 0.5 * eased)
+
+    # Handle length - extends as umbrella opens
+    handle_length = 6 + 8 * eased
+
+    # Colors - darker black umbrella
+    canopy_color = rl.Color(8, 8, 12, int(255 * eased))
+    canopy_dark = rl.Color(3, 3, 6, int(255 * eased))  # Even darker inner layer
+    handle_color = rl.Color(25, 25, 30, int(255 * eased))
+    edge_color = rl.Color(35, 35, 45, int(255 * eased))
+
+    # Draw handle first (behind canopy)
+    handle_end_y = center_y + handle_length
+    # Thicker handle (draw twice offset)
+    rl.draw_line(
+        int(center_x), int(center_y + radius_y * 0.5),
+        int(center_x), int(handle_end_y),
+        handle_color
+    )
+    rl.draw_line(
+        int(center_x + 1), int(center_y + radius_y * 0.5),
+        int(center_x + 1), int(handle_end_y),
+        handle_color
+    )
+    # Handle hook
+    hook_radius = 3
+    rl.draw_circle_lines(
+        int(center_x - hook_radius), int(handle_end_y),
+        hook_radius, handle_color
+    )
+
+    # Draw canopy as filled elliptical arc
+    half_angle = current_angle / 2
+    start_angle = 270 - half_angle  # Point upward
+
+    # Draw filled sector using triangles - elliptical
+    segments = 20  # More segments for smoother curve
+    angle_step = current_angle / segments
+
+    # Draw darker inner layer first for thickness effect
+    for i in range(segments):
+        angle1 = math.radians(start_angle + i * angle_step)
+        angle2 = math.radians(start_angle + (i + 1) * angle_step)
+
+        x1 = center_x + radius_x * 0.85 * math.cos(angle1)
+        y1 = center_y + radius_y * 0.85 * math.sin(angle1)
+        x2 = center_x + radius_x * 0.85 * math.cos(angle2)
+        y2 = center_y + radius_y * 0.85 * math.sin(angle2)
+
+        rl.draw_triangle(
+            rl.Vector2(center_x, center_y),
+            rl.Vector2(x1, y1),
+            rl.Vector2(x2, y2),
+            canopy_dark
+        )
+
+    # Draw main canopy layer
+    for i in range(segments):
+        angle1 = math.radians(start_angle + i * angle_step)
+        angle2 = math.radians(start_angle + (i + 1) * angle_step)
+
+        x1 = center_x + radius_x * math.cos(angle1)
+        y1 = center_y + radius_y * math.sin(angle1)
+        x2 = center_x + radius_x * math.cos(angle2)
+        y2 = center_y + radius_y * math.sin(angle2)
+
+        rl.draw_triangle(
+            rl.Vector2(center_x, center_y),
+            rl.Vector2(x1, y1),
+            rl.Vector2(x2, y2),
+            canopy_color
+        )
+
+    # Draw thick canopy edge for definition (multiple lines)
+    for i in range(segments):
+        angle1 = math.radians(start_angle + i * angle_step)
+        angle2 = math.radians(start_angle + (i + 1) * angle_step)
+
+        x1 = center_x + radius_x * math.cos(angle1)
+        y1 = center_y + radius_y * math.sin(angle1)
+        x2 = center_x + radius_x * math.cos(angle2)
+        y2 = center_y + radius_y * math.sin(angle2)
+
+        # Draw edge twice for thickness
+        rl.draw_line(int(x1), int(y1), int(x2), int(y2), edge_color)
+        rl.draw_line(int(x1), int(y1) + 1, int(x2), int(y2) + 1, edge_color)
+
+    # Draw ribs radiating from center
+    rib_count = 6
+    for i in range(rib_count):
+        rib_angle = math.radians(start_angle + (i + 0.5) * (current_angle / rib_count))
+        rib_x = center_x + radius_x * 0.92 * math.cos(rib_angle)
+        rib_y = center_y + radius_y * 0.92 * math.sin(rib_angle)
+        rl.draw_line(
+            int(center_x), int(center_y),
+            int(rib_x), int(rib_y),
+            rl.Color(18, 18, 24, int(200 * eased))
+        )
+
+    # Center hub
+    rl.draw_circle(int(center_x), int(center_y), 2, handle_color)
+
 
 def draw_street_light(x, ledge_y, t, sprite_w):
     """Draw a street lamp arm coming from right, curving over the character."""
@@ -157,7 +325,7 @@ def draw_umbrella(umbrella_texture, x, ledge_y, sprite_w, sprite_h):
     )
 
 
-def draw_sprite_figure(sprite, x, ledge_y, t, scale=0.12, umbrella_texture=None, is_raining=False):
+def draw_sprite_figure(sprite, x, ledge_y, t, scale=0.12, umbrella_texture=None, is_raining=False, dt=1.0/60.0):
     """Draw the character sprite sitting on ledge with cigarette."""
     sprite_w = int(sprite.width * scale)
     sprite_h = int(sprite.height * scale)
@@ -166,9 +334,12 @@ def draw_sprite_figure(sprite, x, ledge_y, t, scale=0.12, umbrella_texture=None,
     sprite_x = x
     sprite_y = ledge_y - sprite_h * 0.905
 
-    # Draw umbrella if raining
-    if is_raining and umbrella_texture is not None:
-        draw_umbrella(umbrella_texture, x, ledge_y, sprite_w, sprite_h)
+    # Update and draw procedural umbrella with smooth animation
+    open_amount = update_umbrella_state(dt, is_raining)
+    # Position umbrella to cover upper body
+    umbrella_x = sprite_x + sprite_w * 0.5 + 8
+    umbrella_y = sprite_y + 6
+    draw_procedural_umbrella(umbrella_x, umbrella_y, open_amount, t)
 
     # Draw the sprite
     rl.draw_texture_ex(sprite, rl.Vector2(sprite_x, sprite_y), 0, scale, rl.WHITE)

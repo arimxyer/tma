@@ -22,12 +22,16 @@ class Particle:
 
 
 class ParticleSystem:
+    # Time for rain to fade in/out (seconds)
+    RAIN_FADE_DURATION = 4.0
+
     def __init__(self):
         self.particles = []
         # Rain state management
         self.is_raining = False
         self.rain_timer = 0.0
         self.rain_duration = 0.0  # How long current state lasts
+        self.rain_intensity = 0.0  # 0.0 to 1.0, controls spawn rate and visibility
         self._set_next_rain_state()
 
     def _set_next_rain_state(self):
@@ -41,21 +45,36 @@ class ParticleSystem:
         self.rain_timer = 0.0
 
     def update_rain_state(self, dt):
-        """Update rain on/off cycle. Returns True if raining."""
+        """Update rain on/off cycle with gradual fade. Returns True if any rain visible."""
         self.rain_timer += dt
         if self.rain_timer >= self.rain_duration:
             self.is_raining = not self.is_raining
             self._set_next_rain_state()
-        return self.is_raining
+
+        # Gradually adjust rain intensity
+        if self.is_raining:
+            # Fade in
+            self.rain_intensity = min(1.0, self.rain_intensity + dt / self.RAIN_FADE_DURATION)
+        else:
+            # Fade out
+            self.rain_intensity = max(0.0, self.rain_intensity - dt / self.RAIN_FADE_DURATION)
+
+        # Return True if rain is visible (intensity > 0) - used for umbrella trigger
+        return self.rain_intensity > 0.1
 
     def spawn_rain(self, count=3):
-        for _ in range(count):
+        # Spawn rate scales with intensity - fewer particles when fading
+        effective_count = max(1, int(count * self.rain_intensity))
+        # Alpha scales with intensity for gradual fade effect
+        alpha = int(150 * self.rain_intensity)
+
+        for _ in range(effective_count):
             x = random.randint(0, VIRTUAL_WIDTH + 100) - 50
             y = -10
             vx = -2.0  # Wind blowing left
             vy = random.uniform(10.0, 15.0)  # Fast fall
             life = 40.0  # Live long enough to cross screen
-            color = rl.Color(150, 200, 255, 150)  # Transparent blue
+            color = rl.Color(150, 200, 255, alpha)  # Fades with intensity
             self.particles.append(Particle(x, y, vx, vy, life, 40.0, color, 1.0))
 
     def spawn_smoke(self, x, y):

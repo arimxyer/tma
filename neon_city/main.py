@@ -45,8 +45,8 @@ def main():
     # Create Low-Res Render Target
     target = rl.load_render_texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
 
-    # Load Shader
-    shader = rl.load_shader_from_memory(rl.ffi.NULL, FRAGMENT_SHADER)
+    # Load Shader (ffi.NULL = use default vertex shader)
+    shader = rl.load_shader_from_memory(rl.ffi.NULL, FRAGMENT_SHADER)  # pyright: ignore[reportArgumentType]
 
     # Get shader locations
     loc_res = rl.get_shader_location(shader, "resolution")
@@ -80,7 +80,8 @@ def main():
         city.update()
         dt = 1.0 / 60.0
         is_raining = particles.update_rain_state(dt)
-        if is_raining:
+        # Spawn rain whenever intensity > 0 (includes fade in/out)
+        if particles.rain_intensity > 0:
             particles.spawn_rain()
         particles.update(dt)
         for fo in flying_objects:
@@ -147,8 +148,8 @@ def main():
         # Draw overhang light above figure
         draw_street_light(figure_x, ledge_y, t, sprite_w)
 
-        # Draw the figure sprite (with umbrella if raining)
-        cig_pos = draw_sprite_figure(sprite, figure_x, ledge_y, t, sprite_scale, umbrella, is_raining)
+        # Draw the figure sprite (with procedural umbrella animation)
+        cig_pos = draw_sprite_figure(sprite, figure_x, ledge_y, t, sprite_scale, umbrella, is_raining, dt)
 
         # Smoke spawn
         if random.random() < 0.1:
