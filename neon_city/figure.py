@@ -134,7 +134,30 @@ def draw_street_light(x, ledge_y, t, sprite_w):
         )
 
 
-def draw_sprite_figure(sprite, x, ledge_y, t, scale=0.12):
+def draw_umbrella(umbrella_texture, x, ledge_y, sprite_w, sprite_h):
+    """Draw umbrella above character when it's raining."""
+    if umbrella_texture is None:
+        return
+
+    # Scale down from 48x48 source sprite
+    umbrella_scale = 0.5
+    umbrella_w = int(umbrella_texture.width * umbrella_scale)
+    umbrella_h = int(umbrella_texture.height * umbrella_scale)
+
+    # Position umbrella above and slightly in front of character
+    umbrella_x = x + sprite_w * 0.3 - umbrella_w // 2
+    umbrella_y = ledge_y - sprite_h * 0.9 - umbrella_h * 0.6
+
+    rl.draw_texture_ex(
+        umbrella_texture,
+        rl.Vector2(umbrella_x, umbrella_y),
+        0,
+        umbrella_scale,
+        rl.WHITE
+    )
+
+
+def draw_sprite_figure(sprite, x, ledge_y, t, scale=0.12, umbrella_texture=None, is_raining=False):
     """Draw the character sprite sitting on ledge with cigarette."""
     sprite_w = int(sprite.width * scale)
     sprite_h = int(sprite.height * scale)
@@ -142,6 +165,10 @@ def draw_sprite_figure(sprite, x, ledge_y, t, scale=0.12):
     # Position sprite so butt sits ON the ledge
     sprite_x = x
     sprite_y = ledge_y - sprite_h * 0.905
+
+    # Draw umbrella if raining
+    if is_raining and umbrella_texture is not None:
+        draw_umbrella(umbrella_texture, x, ledge_y, sprite_w, sprite_h)
 
     # Draw the sprite
     rl.draw_texture_ex(sprite, rl.Vector2(sprite_x, sprite_y), 0, scale, rl.WHITE)

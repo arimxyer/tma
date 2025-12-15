@@ -39,6 +39,9 @@ def main():
     sprite = rl.load_texture("sprites/sprite-3.png")
     sprite_scale = 0.12  # Scale down for 480x270 virtual resolution
 
+    # Load umbrella sprite
+    umbrella = rl.load_texture("sprites/umbrella.png")
+
     # Create Low-Res Render Target
     target = rl.load_render_texture(VIRTUAL_WIDTH, VIRTUAL_HEIGHT)
 
@@ -75,8 +78,11 @@ def main():
 
         # Update
         city.update()
-        particles.spawn_rain()
-        particles.update(1.0 / 60.0)
+        dt = 1.0 / 60.0
+        is_raining = particles.update_rain_state(dt)
+        if is_raining:
+            particles.spawn_rain()
+        particles.update(dt)
         for fo in flying_objects:
             fo.update()
         hologram_manager.update(1.0 / 60.0)
@@ -141,8 +147,8 @@ def main():
         # Draw overhang light above figure
         draw_street_light(figure_x, ledge_y, t, sprite_w)
 
-        # Draw the figure sprite
-        cig_pos = draw_sprite_figure(sprite, figure_x, ledge_y, t, sprite_scale)
+        # Draw the figure sprite (with umbrella if raining)
+        cig_pos = draw_sprite_figure(sprite, figure_x, ledge_y, t, sprite_scale, umbrella, is_raining)
 
         # Smoke spawn
         if random.random() < 0.1:
@@ -170,6 +176,7 @@ def main():
         rl.end_drawing()
 
     hologram_manager.unload()
+    rl.unload_texture(umbrella)
     rl.unload_texture(sprite)
     rl.unload_render_texture(target)
     rl.unload_shader(shader)

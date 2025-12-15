@@ -24,15 +24,39 @@ class Particle:
 class ParticleSystem:
     def __init__(self):
         self.particles = []
+        # Rain state management
+        self.is_raining = False
+        self.rain_timer = 0.0
+        self.rain_duration = 0.0  # How long current state lasts
+        self._set_next_rain_state()
 
-    def spawn_rain(self):
-        x = random.randint(0, VIRTUAL_WIDTH + 100) - 50
-        y = -10
-        vx = -2.0  # Wind blowing left
-        vy = random.uniform(10.0, 15.0)  # Fast fall
-        life = 1.0
-        color = rl.Color(150, 200, 255, 150)  # Transparent blue
-        self.particles.append(Particle(x, y, vx, vy, life, 1.0, color, 1.0))
+    def _set_next_rain_state(self):
+        """Set random duration for next rain state."""
+        if self.is_raining:
+            # Rain for 20-40 seconds
+            self.rain_duration = random.uniform(20.0, 40.0)
+        else:
+            # Dry for 15-30 seconds
+            self.rain_duration = random.uniform(15.0, 30.0)
+        self.rain_timer = 0.0
+
+    def update_rain_state(self, dt):
+        """Update rain on/off cycle. Returns True if raining."""
+        self.rain_timer += dt
+        if self.rain_timer >= self.rain_duration:
+            self.is_raining = not self.is_raining
+            self._set_next_rain_state()
+        return self.is_raining
+
+    def spawn_rain(self, count=3):
+        for _ in range(count):
+            x = random.randint(0, VIRTUAL_WIDTH + 100) - 50
+            y = -10
+            vx = -2.0  # Wind blowing left
+            vy = random.uniform(10.0, 15.0)  # Fast fall
+            life = 40.0  # Live long enough to cross screen
+            color = rl.Color(150, 200, 255, 150)  # Transparent blue
+            self.particles.append(Particle(x, y, vx, vy, life, 40.0, color, 1.0))
 
     def spawn_smoke(self, x, y):
         # Slowed down significantly for gentle drift
